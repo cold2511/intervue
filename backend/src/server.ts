@@ -84,26 +84,69 @@
 
 
 
+// import { app } from "./app";
+// import mongoose from "mongoose";
+// import { createServer } from "http";
+// import { Server } from "socket.io";
+// import { pollSocket } from "./sockets/poll.socket";
+
+// mongoose
+//   .connect(process.env.MONGO_URI as string)
+//   .then(() => console.log("MongoDB connected"))
+//   .catch(err => console.error("MongoDB error", err));
+
+// const httpServer = createServer(app);
+
+// const io = new Server(httpServer, {
+//   cors: { origin: "*" }
+// });
+
+// pollSocket(io);
+
+// // ✅ FIX: ensure PORT is a number
+// const PORT = Number(process.env.PORT) || 5000;
+
+// httpServer.listen(PORT, "0.0.0.0", () => {
+//   console.log(`Backend running on ${PORT}`);
+// });
+
+
+
+// 🔴 MUST be at the very top
+import dotenv from "dotenv";
+dotenv.config();
+
 import { app } from "./app";
 import mongoose from "mongoose";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { pollSocket } from "./sockets/poll.socket";
 
+// ✅ MongoDB connection (Atlas on Render, local on dev)
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI is not defined");
+  process.exit(1);
+}
+
 mongoose
-  .connect(process.env.MONGO_URI as string)
+  .connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB error", err));
+  .catch((err) => console.error("MongoDB error", err));
 
 const httpServer = createServer(app);
 
+// ✅ Socket.IO setup
 const io = new Server(httpServer, {
-  cors: { origin: "*" }
+  cors: {
+    origin: "*",
+  },
 });
 
 pollSocket(io);
 
-// ✅ FIX: ensure PORT is a number
+// ✅ Correct port handling for local + Render
 const PORT = Number(process.env.PORT) || 5000;
 
 httpServer.listen(PORT, "0.0.0.0", () => {
